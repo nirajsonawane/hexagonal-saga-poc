@@ -16,7 +16,6 @@ public class SwaggerConfig {
                 .apis(RequestHandlerSelectors.basePackage("com.ns"))
                 .paths(PathSelectors.any())
                 .build();
-        // .apiInfo(apinfo());
     }
 
 
