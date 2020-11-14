@@ -9,6 +9,7 @@ import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.context.annotation.Scope
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.statemachine.action.Action
 import org.springframework.statemachine.config.EnableStateMachine
@@ -37,16 +38,15 @@ class AccountEnrollmentSagaConfigurations : EnumStateMachineConfigurerAdapter<St
         states
                 .withStates()
                 .initial(States.STARTED)
-                .stateEntry(States.BANK_ACCOUNT_CREATION_INITIATED, createAccountAction(),errorAction())
-                .stateEntry(States.BANK_ACCOUNT_CREATED, createProfileAction(),errorActionProfileError())
+                .stateEntry(States.BANK_ACCOUNT_CREATION_INITIATED, createAccountAction(), errorAction(Events.BANK_ACCOUNT_CREATION_ERROR))
+                .stateEntry(States.BANK_ACCOUNT_CREATED, createProfileAction(), errorAction(Events.PROFILE_CREATION_ERROR))
                 .state(States.PROFILE_CREATED, updateCrmAction())
                 .state(States.CRM_UPDATED)
-                .state(States.BANK_ACCOUNT_CREATION_ERROR,runCompensatingTransaction())
-                .state(States.PROFILE_CREATION_ERROR,runCompensatingTransaction())
+                .state(States.BANK_ACCOUNT_CREATION_ERROR, runCompensatingTransaction())
+                .state(States.PROFILE_CREATION_ERROR, runCompensatingTransaction())
                 .end(States.CRM_UPDATED)
                 .end(States.BANK_ACCOUNT_CREATION_ERROR)
                 .end(States.PROFILE_CREATION_ERROR)
-
 
 
     }
@@ -101,35 +101,17 @@ class AccountEnrollmentSagaConfigurations : EnumStateMachineConfigurerAdapter<St
     }
 
     @Bean
-    fun errorAction(): Action<States?, Events?>? {
+    @Scope("prototype")
+    fun errorAction(event: Events): Action<States?, Events?>? {
         return Action { context ->
-
-            logger.error("Error Action........")
-            logger.error(context.stateMachine.state.id!!)
-            context.exception.message?.let { "Error in${context.stateMachine.state.id }${logger.error(it)}" }
-            val message = MessageBuilder.withPayload(Events.BANK_ACCOUNT_CREATION_ERROR)
+            logger.error("Error Action for State ${context.stateMachine.state.id} Error Message ${context.exception.message}")
+            val message = MessageBuilder.withPayload(event)
                     .setHeader("clientId", context.messageHeaders["clientId"] as Long)
                     .build()
             context.stateMachine.sendEvent(message)
 
         }
     }
-    @Bean
-    fun errorActionProfileError(): Action<States?, Events?>? {
-        return Action { context ->
-            logger.error("Error Action........")
-            logger.error(context.stateMachine.state.id!!)
-            context.exception.message?.let { "Error in${context.stateMachine.state.id }${logger.error(it)}" }
-            val message = MessageBuilder.withPayload(Events.PROFILE_CREATION_ERROR)
-                    .setHeader("clientId", context.messageHeaders["clientId"] as Long)
-                    .build()
-            context.stateMachine.sendEvent(message)
-            logger.info("After Sending event!!")
-            logger.error(context.stateMachine.state.id!!)
-
-        }
-    }
-
 
     @Bean
     fun createProfileAction(): Action<States, Events> {
