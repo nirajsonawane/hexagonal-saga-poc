@@ -1,4 +1,4 @@
-package com.ns.common
+package com.ns.core.configuration
 
 import com.ns.core.domain.Events
 import com.ns.core.domain.States
