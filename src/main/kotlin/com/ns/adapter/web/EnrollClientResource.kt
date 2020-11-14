@@ -1,17 +1,16 @@
 package com.ns.adapter.web
 
-import com.ns.core.domain.Client
 import com.ns.core.domain.Events
 import com.ns.core.domain.States
-import com.ns.core.port.`in`.ClientPort
 import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.HttpStatus.ACCEPTED
-import org.springframework.http.HttpStatus.CREATED
-import org.springframework.http.ResponseEntity
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.statemachine.StateMachine
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.ResponseStatus
+import org.springframework.web.bind.annotation.RestController
 
 
 @RestController(value = "/enroll")

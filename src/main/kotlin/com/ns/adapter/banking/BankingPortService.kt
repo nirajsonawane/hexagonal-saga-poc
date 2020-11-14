@@ -4,7 +4,6 @@ import com.ns.core.domain.Client
 import com.ns.core.port.out.BankingPort
 import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 
 @Service
 class BankingPortService : BankingPort,Logging{

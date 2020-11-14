@@ -1,7 +1,7 @@
 package com.ns.adapter.persistence.entity
 
-import com.ns.core.domain.Country
 import com.ns.core.domain.Client
+import com.ns.core.domain.Country
 import javax.persistence.Entity
 import javax.persistence.GeneratedValue
 import javax.persistence.Id
