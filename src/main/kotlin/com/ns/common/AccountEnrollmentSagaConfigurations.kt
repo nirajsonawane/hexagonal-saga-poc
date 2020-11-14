@@ -2,11 +2,11 @@ package com.ns.common
 
 import com.ns.core.domain.Events
 import com.ns.core.domain.States
+import com.ns.core.domain.States.*
 import com.ns.core.service.BankingFacade
 import com.ns.core.service.CrmFacade
 import com.ns.core.service.PortfolioFacade
 import org.apache.logging.log4j.kotlin.Logging
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Scope
@@ -21,32 +21,28 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 
 @Configuration
 @EnableStateMachine
-class AccountEnrollmentSagaConfigurations : EnumStateMachineConfigurerAdapter<States, Events>(), Logging {
-
-    @Autowired
-    lateinit var portfolioFacade: PortfolioFacade
-
-    @Autowired
-    lateinit var bankingFacade: BankingFacade
-
-    @Autowired
-    lateinit var crmFacade: CrmFacade
+class AccountEnrollmentSagaConfigurations(val portfolioFacade: PortfolioFacade, val bankingFacade: BankingFacade, val crmFacade: CrmFacade) : EnumStateMachineConfigurerAdapter<States, Events>(), Logging {
 
 
     @Throws(Exception::class)
     override fun configure(states: StateMachineStateConfigurer<States, Events>) {
         states
                 .withStates()
-                .initial(States.STARTED)
-                .stateEntry(States.BANK_ACCOUNT_CREATION_INITIATED, createAccountAction(), errorAction(Events.BANK_ACCOUNT_CREATION_ERROR))
-                .stateEntry(States.BANK_ACCOUNT_CREATED, createProfileAction(), errorAction(Events.PROFILE_CREATION_ERROR))
-                .state(States.PROFILE_CREATED, updateCrmAction())
-                .state(States.CRM_UPDATED)
-                .state(States.BANK_ACCOUNT_CREATION_ERROR, runCompensatingTransaction())
-                .state(States.PROFILE_CREATION_ERROR, runCompensatingTransaction())
-                .end(States.CRM_UPDATED)
-                .end(States.BANK_ACCOUNT_CREATION_ERROR)
-                .end(States.PROFILE_CREATION_ERROR)
+                //State Machine Happy Path flow configurations
+                .initial(STARTED)
+                .stateEntry(BANK_ACCOUNT_CREATION_INITIATED, createAccountAction(), errorAction(Events.BANK_ACCOUNT_CREATION_ERROR))
+                .stateEntry(BANK_ACCOUNT_CREATED, createProfileAction(), errorAction(Events.PROFILE_CREATION_ERROR))
+                .stateEntry(PROFILE_CREATED, updateCrmAction(), errorAction(Events.CRM_UPDATE_ERROR))
+                .state(CRM_UPDATED)
+                // Rollback Transaction Configurations. CompensatingTransaction
+                .state(BANK_ACCOUNT_CREATION_ERROR, runCompensatingTransaction())
+                .state(PROFILE_CREATION_ERROR, runCompensatingTransaction())
+                .state(CRM_UPDATE_ERROR, runCompensatingTransaction())
+                //Terminal states of State Machine
+                .end(CRM_UPDATED)
+                .end(BANK_ACCOUNT_CREATION_ERROR)
+                .end(PROFILE_CREATION_ERROR)
+                .end(CRM_UPDATE_ERROR)
 
 
     }
@@ -62,38 +58,41 @@ class AccountEnrollmentSagaConfigurations : EnumStateMachineConfigurerAdapter<St
     override fun configure(transitions: StateMachineTransitionConfigurer<States, Events>) {
         transitions
                 .withExternal()
-                .source(States.STARTED).target(States.BANK_ACCOUNT_CREATION_INITIATED).event(Events.STARTED)
+                .source(STARTED).target(BANK_ACCOUNT_CREATION_INITIATED).event(Events.STARTED)
                 .and()
                 .withExternal()
-                .source(States.BANK_ACCOUNT_CREATION_INITIATED).target(States.BANK_ACCOUNT_CREATED).event(Events.BANK_ACCOUNT_CREATED)
+                .source(BANK_ACCOUNT_CREATION_INITIATED).target(BANK_ACCOUNT_CREATED).event(Events.BANK_ACCOUNT_CREATED)
                 .and()
                 .withExternal()
-                .source(States.BANK_ACCOUNT_CREATION_INITIATED).target(States.BANK_ACCOUNT_CREATION_ERROR).event(Events.BANK_ACCOUNT_CREATION_ERROR)
+                .source(BANK_ACCOUNT_CREATION_INITIATED).target(BANK_ACCOUNT_CREATION_ERROR).event(Events.BANK_ACCOUNT_CREATION_ERROR)
                 .and()
                 .withExternal()
-                .source(States.BANK_ACCOUNT_CREATED).target(States.PROFILE_CREATED).event(Events.PROFILE_CREATED)
+                .source(BANK_ACCOUNT_CREATED).target(PROFILE_CREATED).event(Events.PROFILE_CREATED)
                 .and()
                 .withExternal()
-                .source(States.BANK_ACCOUNT_CREATED).target(States.PROFILE_CREATION_ERROR).event(Events.PROFILE_CREATION_ERROR)
+                .source(BANK_ACCOUNT_CREATED).target(PROFILE_CREATION_ERROR).event(Events.PROFILE_CREATION_ERROR)
                 .and()
                 .withExternal()
-                .source(States.PROFILE_CREATED).target(States.CRM_UPDATED).event(Events.CRM_UPDATED)
+                .source(PROFILE_CREATED).target(CRM_UPDATED).event(Events.CRM_UPDATED)
+                .and()
+                .withExternal()
+                .source(PROFILE_CREATED).target(CRM_UPDATE_ERROR).event(Events.CRM_UPDATE_ERROR)
 
 
     }
 
     @Bean
-    fun createAccountAction(): Action<States, Events> {
-        return Action<States, Events> {
-            logger.info("Current State ${it.stateMachine.state.id}")
-            bankingFacade.createAccount(it.message.headers["clientId"] as Long)
+    fun createAccountAction(): Action<States, Events> = Action { bankingFacade.createAccount(it.message.headers["clientId"] as Long) }
 
-        }
-    }
+    @Bean
+    fun createProfileAction(): Action<States, Events> = Action { portfolioFacade.createProfile(it.message.headers["clientId"] as Long) }
+
+    @Bean
+    fun updateCrmAction(): Action<States, Events> = Action { crmFacade.updateStatus(it.message.headers["clientId"] as Long) }
 
     @Bean
     fun runCompensatingTransaction(): Action<States, Events> {
-        return Action<States, Events> {
+        return Action {
             bankingFacade.deleteAccount(it.message.headers["clientId"] as Long)
             portfolioFacade.deleteProfile(it.message.headers["clientId"] as Long)
 
@@ -110,21 +109,6 @@ class AccountEnrollmentSagaConfigurations : EnumStateMachineConfigurerAdapter<St
                     .build()
             context.stateMachine.sendEvent(message)
 
-        }
-    }
-
-    @Bean
-    fun createProfileAction(): Action<States, Events> {
-        return Action<States, Events> {
-            portfolioFacade.createProfile(it.message.headers["clientId"] as Long)
-
-        }
-    }
-
-    @Bean
-    fun updateCrmAction(): Action<States, Events> {
-        return Action<States, Events> {
-            crmFacade.updateStatus(it.message.headers["clientId"] as Long)
         }
     }
 
