@@ -8,6 +8,5 @@ interface ClientPort {
 
     fun getAllClients(): List<Client>
 
-    fun enrollClient(clientId: Long)
 
 }

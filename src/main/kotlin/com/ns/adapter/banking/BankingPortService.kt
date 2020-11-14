@@ -11,4 +11,9 @@ class BankingPortService : BankingPort,Logging{
         logger.info("Creating Account in Banking system for $client")
     }
 
+    override fun deleteAccount(client: Client) {
+        logger.info("Deleting Account in Banking system for $client")
+
+    }
+
 }
