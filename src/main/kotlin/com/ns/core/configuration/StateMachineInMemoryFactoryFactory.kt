@@ -27,4 +27,8 @@ class StateMachineInMemoryFactoryFactory(@Lazy val stateMachineFactory: StateMac
 
     }
 
+    fun cleanUp(){
+        stateMachineMap.clear()
+    }
+
 }
