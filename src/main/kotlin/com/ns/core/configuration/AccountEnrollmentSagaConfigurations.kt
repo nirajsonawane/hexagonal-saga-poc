@@ -95,6 +95,7 @@ class AccountEnrollmentSagaConfigurations(val portfolioFacade: PortfolioFacade, 
     @Bean
     fun runCompensatingTransaction(): Action<States, Events> {
         return Action {
+            logger.info("Run Compensating Transaction or send common error notifications")
             bankingFacade.deleteAccount(it.message.headers["clientId"] as Long)
             portfolioFacade.deleteProfile(it.message.headers["clientId"] as Long)
 

@@ -15,7 +15,7 @@ class ClientResource(val clientService: ClientPort) : Logging {
 
     @PostMapping("/client")
     fun createClient(@RequestBody createClientRequest: CreateClientRequest): ResponseEntity<Client> {
-        logger.info("Received request  for creating Client!!! $createClientRequest")
+        logger.info("Received request  for creating Client $createClientRequest")
         val client = clientService.createClient(client = createClientRequest.toDomainClient())
         return ResponseEntity(client, CREATED)
     }

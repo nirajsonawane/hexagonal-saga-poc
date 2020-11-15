@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Lazy
 import org.springframework.statemachine.StateMachine
 import org.springframework.statemachine.config.StateMachineFactory
 import org.springframework.stereotype.Component
+import java.lang.RuntimeException
 
 @Component
 class StateMachineInMemoryFactoryFactory(@Lazy val stateMachineFactory: StateMachineFactory<States, Events>) : Logging {
@@ -15,19 +16,11 @@ class StateMachineInMemoryFactoryFactory(@Lazy val stateMachineFactory: StateMac
     val stateMachineMap = HashMap<Long, StateMachine<States, Events>>()
 
     fun getStateMachine(machineId: Long): StateMachine<States, Events> {
-        val stateMachine = stateMachineMap[machineId]
-        if (stateMachine == null) {
-            logger.info("State Machine")
-            val stateMachine1 = stateMachineFactory.getStateMachine(machineId.toString())
-            stateMachineMap[machineId] = stateMachine1
-            return stateMachine1
-        }
-        logger.info("State Machine Found,Current State : ${stateMachine.state.id}")
-        return stateMachine
-
+        stateMachineMap.putIfAbsent(machineId, stateMachineFactory.getStateMachine(machineId.toString()))
+        return stateMachineMap[machineId] ?: throw RuntimeException("Not able to create to state machine")
     }
 
-    fun cleanUp(){
+    fun cleanUp() {
         stateMachineMap.clear()
     }
 
