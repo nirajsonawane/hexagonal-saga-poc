@@ -1,3 +1,6 @@
 /.idea/
 /target/
 /hexagonal-saga.iml
+/adapter/target/
+/config/target/
+/core/target/
