@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Scope
 import org.springframework.messaging.support.MessageBuilder
 import org.springframework.statemachine.action.Action
 import org.springframework.statemachine.config.EnableStateMachine
+import org.springframework.statemachine.config.EnableStateMachineFactory
 import org.springframework.statemachine.config.EnumStateMachineConfigurerAdapter
 import org.springframework.statemachine.config.builders.StateMachineConfigurationConfigurer
 import org.springframework.statemachine.config.builders.StateMachineStateConfigurer
@@ -20,7 +21,7 @@ import org.springframework.statemachine.config.builders.StateMachineTransitionCo
 
 
 @Configuration
-@EnableStateMachine
+@EnableStateMachineFactory
 class AccountEnrollmentSagaConfigurations(val portfolioFacade: PortfolioFacade, val bankingFacade: BankingFacade, val crmFacade: CrmFacade) : EnumStateMachineConfigurerAdapter<States, Events>(), Logging {
 
 
