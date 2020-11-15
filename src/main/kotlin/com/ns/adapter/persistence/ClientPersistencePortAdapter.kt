@@ -4,7 +4,6 @@ import com.ns.core.domain.Client
 import com.ns.core.port.out.PersistencePort
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
-import java.lang.RuntimeException
 
 @Service
 class ClientPersistencePortAdapter(val clientRepository: ClientRepository) : PersistencePort {

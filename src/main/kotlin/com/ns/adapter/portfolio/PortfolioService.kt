@@ -10,7 +10,12 @@ class PortfolioService : PortfolioPort, Logging {
 
     override fun createProfile(client: Client) {
         logger.info("Creating Profile :Sending request to Portfolio Service ${CreateProfileRequest.fromDomain(client)}")
+        //throw RuntimeException("Exception from Profile Service")
 
+    }
+
+    override fun deleteProfile(client: Client) {
+        logger.info("Deleting profile for client ${client.id}")
     }
 
 }

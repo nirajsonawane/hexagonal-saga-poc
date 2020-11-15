@@ -10,6 +10,7 @@ class CrmPortClientService : CrmPort,Logging{
 
     override fun updateClientStatus(clientId:Long,clientStatus: ClientStatus) {
         logger.info("Updating Client Status in CRM Application")
+        //throw RuntimeException("CRM Service Error")
     }
 
 }

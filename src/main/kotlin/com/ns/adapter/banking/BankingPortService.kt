@@ -9,6 +9,12 @@ import org.springframework.stereotype.Service
 class BankingPortService : BankingPort,Logging{
     override fun createAccount(client: Client) {
         logger.info("Creating Account in Banking system for $client")
+        //throw RuntimeException("Banking Service Error ")
+    }
+
+    override fun deleteAccount(client: Client) {
+        logger.info("Deleting Account in Banking system for $client")
+
     }
 
 }
