@@ -6,7 +6,7 @@ import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 
 @Service
-class ClientPersistencePortAdapter(val clientRepository: ClientRepository) : PersistencePort {
+class PersistencePortAdapter(val clientRepository: ClientRepository) : PersistencePort {
     override fun saveClient(client: Client): Client {
         val clientEntity = clientRepository.save(com.ns.adapter.persistence.entity.Client.fromDomain(client))
         return clientEntity.toDomain()

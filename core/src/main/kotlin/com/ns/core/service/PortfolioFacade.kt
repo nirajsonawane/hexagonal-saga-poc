@@ -1,6 +1,6 @@
 package com.ns.core.service
 
-import com.ns.core.configuration.StateMachineInMemoryFactoryFactory
+import com.ns.core.configuration.StateMachineInMemoryFactory
 import com.ns.core.domain.Events
 import com.ns.core.port.out.PersistencePort
 import com.ns.core.port.out.PortfolioPort
@@ -9,7 +9,7 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 
 @Service
-class PortfolioFacade(val factory: StateMachineInMemoryFactoryFactory, val portfolioPort: PortfolioPort, val persistencePort: PersistencePort) : Logging {
+class PortfolioFacade(val factory: StateMachineInMemoryFactory, val portfolioPort: PortfolioPort, val persistencePort: PersistencePort) : Logging {
 
 
     fun createProfile(clientId: Long) {

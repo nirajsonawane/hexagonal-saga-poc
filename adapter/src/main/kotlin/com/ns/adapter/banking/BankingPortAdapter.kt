@@ -6,7 +6,7 @@ import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.stereotype.Service
 
 @Service
-class BankingPortService : BankingPort,Logging{
+class BankingPortAdapter : BankingPort,Logging{
     override fun createAccount(client: Client) {
         logger.info("Creating Account in Banking system for $client")
         //throw RuntimeException("Banking Service Error ")

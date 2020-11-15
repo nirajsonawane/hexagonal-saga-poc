@@ -1,11 +1,11 @@
 package com.ns
 
-import com.ns.adapter.banking.BankingPortService
-import com.ns.adapter.crm.CrmPortClientService
+import com.ns.adapter.banking.BankingPortAdapter
+import com.ns.adapter.crm.CrmPortAdapter
 import com.ns.adapter.persistence.ClientRepository
 import com.ns.adapter.persistence.entity.Client
 import com.ns.adapter.portfolio.PortfolioService
-import com.ns.core.configuration.StateMachineInMemoryFactoryFactory
+import com.ns.core.configuration.StateMachineInMemoryFactory
 import com.ns.core.domain.ClientStatus
 import com.ns.core.domain.Country
 import com.ns.core.domain.States
@@ -33,7 +33,7 @@ class RunCompensatingTransactionIntegrationTest : Logging {
     lateinit var mockMvc: MockMvc
 
     @Autowired
-    lateinit var stateMachineInMemoryFactoryFactory: StateMachineInMemoryFactoryFactory
+    lateinit var stateMachineInMemoryFactory: StateMachineInMemoryFactory
 
     @Autowired
     lateinit var clientRepository: ClientRepository
@@ -42,14 +42,14 @@ class RunCompensatingTransactionIntegrationTest : Logging {
     lateinit var portfolioService: PortfolioService
 
     @MockBean
-    lateinit var bankingPortService: BankingPortService
+    lateinit var bankingPortAdapter: BankingPortAdapter
 
     @MockBean
-    lateinit var crmPortService:CrmPortClientService
+    lateinit var crmPortAdapter:CrmPortAdapter
 
     @BeforeEach
     fun setup() {
-        stateMachineInMemoryFactoryFactory.cleanUp()
+        stateMachineInMemoryFactory.cleanUp()
         clientRepository.deleteAll()
         val client = Client(clientId = null, firstName = "Test", lastName = "", email = "", mobileNumber = "", taxNumber = "", country = Country.DE)
         clientRepository.save(client)
@@ -62,12 +62,12 @@ class RunCompensatingTransactionIntegrationTest : Logging {
         @Test
         fun `Account Enrollment Saga should end with Account Creation Error state if Banking port throws exception`() {
             val client = clientRepository.findAll()[0].toDomain()
-            Mockito.`when`(bankingPortService.createAccount(client = client)).thenThrow(RuntimeException("Mock Exception"))
+            Mockito.`when`(bankingPortAdapter.createAccount(client = client)).thenThrow(RuntimeException("Mock Exception"))
             mockMvc
                     .perform(post("/client/${client.id}/enroll"))
                     .andExpect(status().isAccepted)
 
-            assertEquals(States.BANK_ACCOUNT_CREATION_ERROR.name, stateMachineInMemoryFactoryFactory.getStateMachine(client.id!!).state.id.name)
+            assertEquals(States.BANK_ACCOUNT_CREATION_ERROR.name, stateMachineInMemoryFactory.getStateMachine(client.id!!).state.id.name)
         }
     }
 
@@ -77,13 +77,13 @@ class RunCompensatingTransactionIntegrationTest : Logging {
         @Test
         fun `Account Enrollment Saga should end with Profile Creation Error state if Portfolio port throws exception`() {
             val client = clientRepository.findAll()[0].toDomain()
-            Mockito.doNothing().`when`(bankingPortService).createAccount(client = client)
+            Mockito.doNothing().`when`(bankingPortAdapter).createAccount(client = client)
             Mockito.`when`(portfolioService.createProfile(client)).thenThrow(RuntimeException("Mock Exception from portfolio Service"))
             mockMvc
                     .perform(post("/client/${client.id}/enroll"))
                     .andExpect(status().isAccepted);
 
-            assertEquals(States.PROFILE_CREATION_ERROR.name, stateMachineInMemoryFactoryFactory.getStateMachine(client.id!!).state.id.name)
+            assertEquals(States.PROFILE_CREATION_ERROR.name, stateMachineInMemoryFactory.getStateMachine(client.id!!).state.id.name)
         }
     }
 
@@ -93,14 +93,14 @@ class RunCompensatingTransactionIntegrationTest : Logging {
         @Test
         fun `Account Enrollment Saga should end with Profile Creation Error state if CRM port throws exception`() {
             val client = clientRepository.findAll()[0].toDomain()
-            Mockito.doNothing().`when`(bankingPortService).createAccount(client = client)
+            Mockito.doNothing().`when`(bankingPortAdapter).createAccount(client = client)
             Mockito.doNothing().`when`(portfolioService).createProfile(client = client)
-            Mockito.`when`(crmPortService.updateClientStatus(client.id!!,ClientStatus.REGISTERED)).thenThrow(RuntimeException("Mock Exception from CRM  Port"))
+            Mockito.`when`(crmPortAdapter.updateClientStatus(client.id!!,ClientStatus.REGISTERED)).thenThrow(RuntimeException("Mock Exception from CRM  Port"))
             mockMvc
                     .perform(post("/client/${client.id}/enroll"))
                     .andExpect(status().isAccepted);
 
-            assertEquals(States.CRM_UPDATE_ERROR.name, stateMachineInMemoryFactoryFactory.getStateMachine(client.id!!).state.id.name)
+            assertEquals(States.CRM_UPDATE_ERROR.name, stateMachineInMemoryFactory.getStateMachine(client.id!!).state.id.name)
         }
     }
 

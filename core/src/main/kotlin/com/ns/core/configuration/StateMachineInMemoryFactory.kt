@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component
 import java.lang.RuntimeException
 
 @Component
-class StateMachineInMemoryFactoryFactory(@Lazy val stateMachineFactory: StateMachineFactory<States, Events>) : Logging {
+class StateMachineInMemoryFactory(@Lazy val stateMachineFactory: StateMachineFactory<States, Events>) : Logging {
 
 
     val stateMachineMap = HashMap<Long, StateMachine<States, Events>>()

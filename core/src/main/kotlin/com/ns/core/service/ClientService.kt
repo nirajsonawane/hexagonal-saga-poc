@@ -1,6 +1,6 @@
 package com.ns.core.service
 
-import com.ns.core.configuration.StateMachineInMemoryFactoryFactory
+import com.ns.core.configuration.StateMachineInMemoryFactory
 import com.ns.core.domain.Client
 import com.ns.core.domain.Events
 import com.ns.core.port.`in`.ClientPort
@@ -10,7 +10,7 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 
 @Service
-class ClientService(val factory: StateMachineInMemoryFactoryFactory, val persistencePort: PersistencePort) : Logging, ClientPort {
+class ClientService(val factory: StateMachineInMemoryFactory, val persistencePort: PersistencePort) : Logging, ClientPort {
 
 
     override fun createClient(client: Client): Client {

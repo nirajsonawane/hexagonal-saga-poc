@@ -6,7 +6,7 @@ import org.apache.logging.log4j.kotlin.Logging
 import org.springframework.stereotype.Service
 
 @Service
-class CrmPortClientService : CrmPort,Logging{
+class CrmPortAdapter : CrmPort,Logging{
 
     override fun updateClientStatus(clientId:Long,clientStatus: ClientStatus) {
         logger.info("Updating Client Status in CRM Application")

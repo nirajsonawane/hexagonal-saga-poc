@@ -1,6 +1,6 @@
 package com.ns.core.service
 
-import com.ns.core.configuration.StateMachineInMemoryFactoryFactory
+import com.ns.core.configuration.StateMachineInMemoryFactory
 import com.ns.core.domain.Events
 import com.ns.core.port.out.BankingPort
 import com.ns.core.port.out.PersistencePort
@@ -9,7 +9,7 @@ import org.springframework.messaging.support.MessageBuilder
 import org.springframework.stereotype.Service
 
 @Service
-class BankingFacade(val factory: StateMachineInMemoryFactoryFactory, val bankingPort: BankingPort, val persistencePort: PersistencePort) : Logging {
+class BankingFacade(val factory: StateMachineInMemoryFactory, val bankingPort: BankingPort, val persistencePort: PersistencePort) : Logging {
 
 
     fun createAccount(clientId: Long) {

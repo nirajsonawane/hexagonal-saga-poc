@@ -2,7 +2,7 @@ package com.ns
 
 import com.ns.adapter.persistence.ClientRepository
 import com.ns.adapter.persistence.entity.Client
-import com.ns.core.configuration.StateMachineInMemoryFactoryFactory
+import com.ns.core.configuration.StateMachineInMemoryFactory
 import com.ns.core.domain.Country
 import com.ns.core.domain.States
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,7 +25,7 @@ class HappyPathIntegrationTest {
     lateinit var mockMvc: MockMvc
 
     @Autowired
-    lateinit var stateMachineInMemoryFactoryFactory: StateMachineInMemoryFactoryFactory
+    lateinit var stateMachineInMemoryFactory: StateMachineInMemoryFactory
 
     @Autowired
     lateinit var clientRepository: ClientRepository
@@ -45,7 +45,7 @@ class HappyPathIntegrationTest {
                 .perform(post("/client/1/enroll"))
                 .andExpect(status().isAccepted);
 
-        assertEquals(States.CRM_UPDATED.name, stateMachineInMemoryFactoryFactory.getStateMachine(1).state.id.name)
+        assertEquals(States.CRM_UPDATED.name, stateMachineInMemoryFactory.getStateMachine(1).state.id.name)
 
 
     }
